@@ -1,5 +1,8 @@
 package com.example.iterator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Test {
 
 	public static void main(String[] args) {
@@ -26,5 +29,11 @@ public class Test {
 		}
 		System.out.println(coll1);
 
+		int a = 2;
+		System.out.println(100 >> 1);
+
+		List<String> list = new ArrayList<>();
+		list.add("22");
+		System.out.println(list.get(3));
 	}
 }
