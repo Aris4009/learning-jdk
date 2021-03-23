@@ -8,9 +8,9 @@ package com.example.iterator;
  */
 public interface Reverse<T> {
 
-	T pre();
+	T next();
 
-	boolean hasPre();
+	boolean hasNext();
 
 	T remove();
 }

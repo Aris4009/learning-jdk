@@ -3,9 +3,11 @@ package com.example.iterator;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
-public class ReverseCollection<T> implements Reversable<T> {
+public class ReverseCollection<T> {
 
 	private transient T[] arr;
+
+	private transient T[] list;
 
 	private int size;
 
@@ -24,7 +26,7 @@ public class ReverseCollection<T> implements Reversable<T> {
 	@SuppressWarnings("unchecked")
 	protected ReverseCollection(Class<T> clazz) {
 		this.size = INIT_SIZE;
-		this.cursor = this.size;
+		this.cursor = this.size - 1;
 		this.clazz = clazz;
 		arr = (T[]) Array.newInstance(clazz, this.size);
 	}
@@ -35,7 +37,7 @@ public class ReverseCollection<T> implements Reversable<T> {
 			size = INIT_SIZE;
 		}
 		this.size = size;
-		this.cursor = this.size;
+		this.cursor = this.size - 1;
 		this.clazz = clazz;
 		arr = (T[]) Array.newInstance(clazz, this.size);
 	}
@@ -48,30 +50,42 @@ public class ReverseCollection<T> implements Reversable<T> {
 			throw new ArrayIndexOutOfBoundsException();
 		}
 		if (this.cursor >= 0) {
-			arr[this.cursor - 1] = t;
+			arr[this.cursor] = t;
 			this.cursor = this.cursor - 1;
 		} else {
-			if (Integer.MAX_VALUE / 2 < this.size) {
+			if (Integer.MAX_VALUE / this.size < 2) {
 				this.size = Integer.MAX_VALUE;
 			} else {
-				this.size = this.size * 2;
+				T[] n = (T[]) Array.newInstance(clazz, this.size * 2);
+				int nCursor = this.size;
+				System.arraycopy(arr, 0, n, nCursor, this.size);
+				arr = n;
+				this.size = n.length;
+				arr[nCursor - 1] = t;
+				this.cursor = nCursor - 2;
 			}
-			System.arraycopy(this.arr, this.cursor - 1, Array.newInstance(this.clazz, this.size), this.cursor - 1,
-					this.size);
-
 		}
 		this.length = this.length + 1;
+		this.list = Arrays.copyOfRange(this.arr, this.cursor + 1, this.size);
 		return true;
+	}
+
+	public T get(int index) {
+		if (index < 0 || index >= this.list.length) {
+			throw new ArrayIndexOutOfBoundsException();
+		}
+		return this.list[index];
 	}
 
 	public T remove() {
 		if (isEmpty()) {
 			throw new NullPointerException();
 		}
-		T a = Arrays.copyOfRange(arr, this.cursor - 1, this.cursor)[0];
+		T a = Arrays.copyOfRange(arr, this.cursor + 1, this.cursor + 2)[0];
 		this.length = this.length - 1;
-		arr[this.cursor - 1] = null;
+		arr[this.cursor + 1] = null;
 		this.cursor = this.cursor + 1;
+		this.list = Arrays.copyOfRange(this.arr, this.cursor + 1, this.size);
 		return a;
 	}
 
@@ -83,34 +97,40 @@ public class ReverseCollection<T> implements Reversable<T> {
 		return length;
 	}
 
-	@Override
 	public Reverse<T> reverse() {
-		return null;
+		return new Re();
 	}
 
-	public class Re implements Reverse<T> {
+	private class Re implements Reverse<T> {
+
+		private int cur;
+
+		public Re() {
+			this.cur = 0;
+		}
 
 		@Override
-		public T pre() {
-			T a = arr[cursor - 1];
-			cursor = cursor - 1;
+		public T next() {
+			T a = ReverseCollection.this.list[this.cur];
+			this.cur = this.cur + 1;
 			return a;
 		}
 
 		@Override
-		public boolean hasPre() {
-			return cursor > 0;
+		public boolean hasNext() {
+			return cur < ReverseCollection.this.list.length;
 		}
 
 		@Override
 		public T remove() {
+			this.cur = this.cur - 1;
 			return ReverseCollection.this.remove();
 		}
 	}
 
 	@Override
 	public String toString() {
-		return "ReverseCollection{" + "arr=" + Arrays.toString(arr) + ", size=" + size + ", cursor=" + cursor
+		return "ReverseCollection{" + "arr=" + Arrays.toString(this.list) + ", size=" + size + ", cursor=" + cursor
 				+ ", length=" + length + '}';
 	}
 }
